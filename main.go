@@ -1,0 +1,76 @@
+package main
+
+import (
+	"fmt"
+)
+
+type PaymentProcessor interface {
+	Pay(amount float64) error
+}
+
+type PixPayment struct{}
+type CreditCardPayment struct{}
+
+func (p PixPayment) Pay(amount float64) error {
+	fmt.Println("Processing PIX payment:", amount)
+	return nil
+}
+
+func (c CreditCardPayment) Pay(amount float64) error {
+	fmt.Println("Processing Credit Card payment:", amount)
+	return nil
+}
+
+func processPayment(payment PaymentProcessor, amount float64) error {
+	return payment.Pay(amount)
+}
+
+// type Product struct {
+// 	Name  string
+// 	Price float64
+// 	Stock int
+// }
+
+// func (p Product) IsAvailable() bool {
+// 	return p.Stock >= 1
+// }
+
+// func (p *Product) AddStock(quantity int) {
+// 	p.Stock += quantity
+// }
+
+// func withdraw(stock int, quantity int) (int, error) {
+// 	if quantity <= 0 {
+// 		return 0, errors.New("invalid quantity")
+// 	}
+
+// 	if quantity > stock {
+// 		return 0, errors.New("insufficient stock")
+// 	}
+
+// 	return stock - quantity, nil
+// }
+
+func main() {
+
+	// product := Product{
+	// 	Name:  "Mechanical Keyboard",
+	// 	Price: 350,
+	// 	Stock: 10,
+	// }
+
+	// fmt.Println("IsAvailable: ", product.IsAvailable())
+	// product.AddStock(15)
+	// fmt.Println("New Stock: ", product.Stock)
+
+	// value, err := withdraw(1, 3)
+	// if err != nil {
+	// 	fmt.Println("Error: ", err)
+	// 	return
+	// }
+	// fmt.Println("value: ", value)
+
+	processPayment(PixPayment{}, 100)
+	processPayment(CreditCardPayment{}, 200)
+
+}

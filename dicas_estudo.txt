@@ -1,0 +1,141 @@
+go.mod = npm/package.json
+
+go get github.com/gin-gonic/gin = npm install express
+
+O que é go.sum?
+Pense nele como um arquivo que guarda checksums/informações de integridade das versões das dependências.
+
+Então:
+go.mod→ quais dependências e versões o projeto usa.
+go.sum→ verificações de integridade dessas dependências.
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+go mod tidy:
+
+Ele analisa os imports do seu projeto e ajusta as dependências do módulo.
+
+Por exemplo, você começa a usar:
+
+import "github.com/gin-gonic/gin"
+
+e executa:
+
+go mod tidy
+
+O Go garante que as dependências necessárias estejam registradas.
+Também remove dependências que não são mais necessárias.
+
+Pense nele como uma ferramenta de limpeza/sincronização das dependências.
+
+-------------------------------------------------------------------------------------------------------------------------------------------------------
+Quando você inicializa uma struct com campos normais (valores), Go atribui o valor padrão de cada tipo. Quando você usa ponteiros, o valor padrão de qualquer ponteiro em Go é sempre nil.
+
+
+type EstruturaValor struct {
+	Ativo  bool
+	Nome   string
+	Idade  int
+}
+
+type EstruturaPonteiro struct {
+	Ativo  *bool
+	Nome   *string
+	Idade  *int
+}
+
+func main() {
+	v := EstruturaValor{}
+	fmt.Printf("Valor -> Ativo: %t, Nome: %q, Idade: %d\n", v.Ativo, v.Nome, v.Idade)
+	// Saída: Ativo: false, Nome: "", Idade: 0
+
+	p := EstruturaPonteiro{}
+	fmt.Printf("Ponteiro -> Ativo: %v, Nome: %v, Idade: %v\n", p.Ativo, p.Nome, p.Idade)
+	// Saída: Ativo: <nil>, Nome: <nil>, Idade: <nil>
+}
+
+Dica para ponteiros -> Precisa alterar dados? Entao ponteiro. Quer ler dados? Então nao use ponteiro. Nao usando ponteiro vc passa a copia e depois 
+da execução ele perde todos os dados alterados.
+
+-------------------------------------------------------------------------------------------------------------------------------------------------------
+
+func main() {
+    func buscarIdade() (int, error) {
+        return 25, nil
+    }
+
+	// A variável 'idade' e 'err' só existem dentro do if/else
+	if idade, err := buscarIdade(); err != nil {
+		fmt.Println("Erro ao buscar idade:", err)
+	} else {
+		fmt.Printf("A idade é %d. Ela só existe aqui dentro!\n", idade)
+	}
+
+	// Se você tentar usar 'idade' aqui fora, o compilador dará erro:
+	// fmt.Println(idade) // undefined: idade
+}
+
+-------------------------------------------------------------------------------------------------------------------------------------------------------
+
+Interface -> Criei o PaymentProcessor, qualquer struct que tenha um metodo Pay(amount float64) error exatamente assim ira implementar a interface
+PaymentProcessor.
+
+repare que embaixo fiz processPayment -> ela diz que eu posso passar um metodo de pagamento e a quantidade não preciso especificamente ser de um tipo.
+isso implementa PaymentProcessor? → então consigo chamar Pay()
+
+Mas se eu quiser posso fazer 
+
+PixPayment{}.Pay(100) que ai nao preciso chamar a funcao processPayment que espera alguem que implemente a função Pay.
+
+Posso chamar PixPayment{}.Pay(100) diretamente, porque estou trabalhando com o tipo concreto PixPayment. Já processPayment recebe um PaymentProcessor, então ele aceita qualquer tipo que implemente Pay(amount float64) error.
+
+
+type PaymentProcessor interface {
+	Pay(amount float64) error
+}
+
+type PixPayment struct{}
+type CreditCardPayment struct{}
+
+func (p PixPayment) Pay(amount float64) error {
+	fmt.Println("Processing PIX payment:", amount)
+	return nil
+}
+
+func (c CreditCardPayment) Pay(amount float64) error {
+	fmt.Println("Processing Credit Card payment:", amount)
+	return nil
+}
+
+func processPayment(payment PaymentProcessor, amount float64) error {
+	return payment.Pay(amount)
+}
+
+processPayment(PixPayment{}, 100)
+processPayment(CreditCardPayment{}, 200)
+
+//SUPONHA QUE TENHA O METODO Show()
+type PaymentProcessor interface {
+	Pay(amount float64) error
+	Show()
+}
+
+E você faz:
+type PixPayment struct{}
+
+func (p PixPayment) Pay(amount float64) error {
+	fmt.Println("PIX:", amount)
+	return nil
+}
+
+Nesse momento, PixPayment não implementa PaymentProcessor, porque falta: Show()
+
+Se tentar executar: processPayment(PixPayment{}, 100) o Go vai reclamar em compilação, porque PixPayment não satisfaz a interface.
+
+Você teria que fazer:
+
+func (p PixPayment) Show() {
+	fmt.Println("Showing PIX payment")
+}
+
+-------------------------------------------------------------------------------------------------------------------------------------------------------
