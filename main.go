@@ -1,29 +1,31 @@
 package main
 
 import (
+	"context"
 	"fmt"
+	"time"
 )
 
-type PaymentProcessor interface {
-	Pay(amount float64) error
-}
+// type PaymentProcessor interface {
+// 	Pay(amount float64) error
+// }
 
-type PixPayment struct{}
-type CreditCardPayment struct{}
+// type PixPayment struct{}
+// type CreditCardPayment struct{}
 
-func (p PixPayment) Pay(amount float64) error {
-	fmt.Println("Processing PIX payment:", amount)
-	return nil
-}
+// func (p PixPayment) Pay(amount float64) error {
+// 	fmt.Println("Processing PIX payment:", amount)
+// 	return nil
+// }
 
-func (c CreditCardPayment) Pay(amount float64) error {
-	fmt.Println("Processing Credit Card payment:", amount)
-	return nil
-}
+// func (c CreditCardPayment) Pay(amount float64) error {
+// 	fmt.Println("Processing Credit Card payment:", amount)
+// 	return nil
+// }
 
-func processPayment(payment PaymentProcessor, amount float64) error {
-	return payment.Pay(amount)
-}
+// func processPayment(payment PaymentProcessor, amount float64) error {
+// 	return payment.Pay(amount)
+// }
 
 // type Product struct {
 // 	Name  string
@@ -51,6 +53,17 @@ func processPayment(payment PaymentProcessor, amount float64) error {
 // 	return stock - quantity, nil
 // }
 
+func doSomething(ctx context.Context) error {
+	select {
+	case <-ctx.Done():
+		fmt.Println("Operação foi cancelada.")
+		return ctx.Err()
+	case <-time.After(5 * time.Second):
+		fmt.Println("Operação Terminou.")
+		return ctx.Err()
+	}
+}
+
 func main() {
 
 	// product := Product{
@@ -70,7 +83,16 @@ func main() {
 	// }
 	// fmt.Println("value: ", value)
 
-	processPayment(PixPayment{}, 100)
-	processPayment(CreditCardPayment{}, 200)
+	// processPayment(PixPayment{}, 100)
+	// processPayment(CreditCardPayment{}, 200)
+
+	ctx, cancel := context.WithTimeout(
+		context.Background(),
+		2*time.Second,
+	)
+
+	defer cancel()
+
+	doSomething(ctx)
 
 }

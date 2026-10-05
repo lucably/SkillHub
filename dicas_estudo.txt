@@ -139,3 +139,90 @@ func (p PixPayment) Show() {
 }
 
 -------------------------------------------------------------------------------------------------------------------------------------------------------
+
+O que é Context?
+
+Simplificando bastante:
+
+context.Context carrega informações sobre o ciclo de vida de uma operação.
+
+Principalmente:
+	cancelamento
+	timeout/deadline
+	valores associados à operação
+
+Para backend, os dois primeiros são os mais importantes inicialmente.
+
+func main() {
+	ctx := context.Background()
+
+	fmt.Println(ctx)
+}
+
+context.Background() cria um contexto raiz.
+Pense nele como:
+
+"Comece uma nova operação."
+
+Não pense: "context.Context é uma coisa que eu preciso passar porque Go exige."
+
+Pense: "Essa operação pertence a uma requisição/operação maior e preciso carregar o ciclo de vida dela pelas camadas."
+
+-------------------------------------------------------------------------------------------------------------------------------------------------------
+
+ESTUDANDO CONTEXTO.
+
+
+O "select" funciona como uma corrida de canais: o que entregar o dado primeiro ganha, executa o seu respectivo bloco de código e encerra a estrutura.
+
+
+select {
+	case X:
+		// contexto cancelado
+		return ...
+	case Y:
+		// operação terminou
+		return ...
+	}
+
+Codigo:
+
+	func doSomething(ctx context.Context) error {
+		select {
+		case <-ctx.Done():
+			fmt.Println("Operação foi cancelada.")
+			return ctx.Err()
+		case <-time.After(5 * time.Second):
+			fmt.Println("Operação Terminou.")
+			return ctx.Err()
+		}
+	}
+
+	ctx, cancel := context.WithTimeout(
+			context.Background(),
+			2*time.Second,
+		)
+
+		defer cancel()
+
+		doSomething(ctx)
+
+
+WithTimeout diz -> "Depois de 2 segundos, minha operação deve ser cancelada."
+
+Se deixar o context com 2 seg de timeout o select vai esperar o 1° evento que bater, que será no ctx.Done() e imprimir "Operação foi cancelada."
+Se colocar o tempo de 2*time.Second para 8 seg, ele vai cair no case <-time.After(5 * time.Second).
+
+<-ctx.Done()
+
+Done() retorna um channel.
+
+ctx.Done()
+    ↓
+"canal que será sinalizado quando o contexto for cancelado"
+
+E o: <-
+
+significa que estamos esperando receber algo desse canal.
+
+Por isso funciona perfeitamente dentro do select.
