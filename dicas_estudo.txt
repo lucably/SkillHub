@@ -226,3 +226,88 @@ E o: <-
 significa que estamos esperando receber algo desse canal.
 
 Por isso funciona perfeitamente dentro do select.
+
+-------------------------------------------------------------------------------------------------------------------------------------------------------
+
+ESTUDANDO goroutine + channel
+
+O que é uma goroutine?
+
+Uma goroutine permite executar uma função de forma concorrente.
+
+exp: go doSomething()
+
+você diz:
+"Execute essa função concorrentemente; não preciso esperar aqui para continuar."
+main
+ │
+ ├── go doSomething()
+ │       ↓
+ │    executando
+ │
+ └── continua imediatamente
+
+Um channel permite que goroutines se comuniquem.
+ch := make(chan string)
+
+Exemplo de codigo:
+	func sayHello(ch chan string) {
+		time.Sleep(2 * time.Second)
+
+		ch <- "Hello"
+	}
+
+	func main() {
+		ch := make(chan string)
+
+		go sayHello(ch)
+
+		message := <-ch
+
+		fmt.Println(message)
+	}
+
+	//O make é uma função embutida (built-in) usada exclusivamente para inicializar e alocar memória para tipos de dados especiais: fatias (slices), mapas (maps) e canais (channels).
+    //Se você apenas declarar um canal ou um mapa sem o make, ele nascerá com o valor nil (nulo), o que causará problemas no seu programa:
+	//go sayHello(ch) => você está dizendo ao Go para executar sayHello em uma goroutine concorrente, enquanto a goroutine principal pode continuar.
+main
+ │
+ ├── cria channel
+ │
+ ├── inicia goroutine
+ │       │
+ │       └── espera 2s
+ │
+ ├── espera <-ch
+ │
+ │       2s
+ │       ↓
+ │    ch <- "Hello"
+ │
+ └── recebe "Hello"
+
+Quando você faz:
+message := <-ch
+
+A execução bloqueia até existir algo para receber.
+Ou seja:
+<-ch
+ │
+ ├── tem mensagem? → continua
+ │
+ └── não tem? → espera
+
+Isso é fundamental para entender channels.
+
+Cuidado: concorrência ≠ paralelismo
+
+Concorrência:
+lidar com várias tarefas em andamento.
+
+Paralelismo:
+executar tarefas literalmente ao mesmo tempo em diferentes recursos de CPU.
+
+Go trabalha muito bem com concorrência, e o runtime decide como executar as goroutines.
+
+Channel com buffer:
+ch := make(chan string, 1) => O 1 significa que o channel consegue armazenar 1 valor antes de precisar de um receiver.

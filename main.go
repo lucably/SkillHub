@@ -64,6 +64,12 @@ func doSomething(ctx context.Context) error {
 	}
 }
 
+func worker(ch chan string) {
+	time.Sleep(2 * time.Second)
+
+	ch <- "Process finished"
+}
+
 func main() {
 
 	// product := Product{
@@ -86,13 +92,22 @@ func main() {
 	// processPayment(PixPayment{}, 100)
 	// processPayment(CreditCardPayment{}, 200)
 
-	ctx, cancel := context.WithTimeout(
-		context.Background(),
-		2*time.Second,
-	)
+	// ctx, cancel := context.WithTimeout(
+	// 	context.Background(),
+	// 	2*time.Second,
+	// )
 
-	defer cancel()
+	// defer cancel()
 
-	doSomething(ctx)
+	// doSomething(ctx)
 
+	/* EXERCICIO CHANNEL e GOROUTINES
+	ch := make(chan string, 1)
+	//Aqui utiliza o goroutine falando para executar uma função de forma concorrente, ou seja, continua a func main juntamente com o worker.
+	go worker(ch)
+
+	//Ja aqui seria um await. Ou seja, estamos falando para ESPERAR (travar, mas outras goroutines podem continuar executando) aqui até que o ch tenha valor "Espere até que alguém coloque um valor nesse channel."
+	message := <-ch
+	fmt.Println(message)
+	*/
 }
