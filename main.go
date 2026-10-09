@@ -109,5 +109,28 @@ func main() {
 	//Ja aqui seria um await. Ou seja, estamos falando para ESPERAR (travar, mas outras goroutines podem continuar executando) aqui até que o ch tenha valor "Espere até que alguém coloque um valor nesse channel."
 	message := <-ch
 	fmt.Println(message)
+
+	//exemplo DEADLOCK = AQUI O CODIGO TRAVA E DAR DEADLOCK!
+
+	ch := make(chan string)
+
+	ch <- "hello"
+
+	fmt.Println(<-ch)
+
+	// COMO RESOLVER = Ou vc declara o goroutine utilizando uma função igual ao exemplo mais acima "go worker(ch)" ou declara com buffer => ch := make(chan string, 1)
+	ch := make(chan string, 1)
+
+	ch <- "hello"
+
+	fmt.Println(<-ch)
+	-----------------------------------------------------------------------------------------------------------------------------------------------
+	//OU FAÇA ASSIM SE TIVER 2 VALORES
+	ch := make(chan string, 2)
+
+	ch <- "hello"
+
+	ch <- "hello 2"
+	fmt.Println(<-ch)
 	*/
 }

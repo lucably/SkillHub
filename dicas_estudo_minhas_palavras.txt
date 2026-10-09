@@ -311,3 +311,83 @@ Go trabalha muito bem com concorrência, e o runtime decide como executar as gor
 
 Channel com buffer:
 ch := make(chan string, 1) => O 1 significa que o channel consegue armazenar 1 valor antes de precisar de um receiver.
+
+• canal <- valor :Envia o valor para dentro do canal (é o caso de ch <- "hello").
+• variavel := <-canal: Recebe (lê) um valor que está vindo de dentro do canal.
+
+ch := make(chan string)
+
+    go func() {
+        ch <- "hello"
+    }()
+
+    fmt.Println(<-ch)
+
+Neste exemplo:
+	ch := make(chan string, 1)
+
+	ch <- "A"
+	ch <- "B"
+
+	fmt.Println(<-ch)
+
+Irá guardar o VALOR "A" e depois dará DEADLOCK. Pois como tem o buffer "1" make(chan string, 1) só poderá guardar 1 valor.
+Lembre-se Para channel funcionar ou tu precisa do buffer ou de uma função com goroutine.
+
+ch <- "A"
+O buffer está vazio. "A" é armazenado.
+Buffer: ["A"]
+
+ch <- "B"
+O buffer já está cheio. Como ninguém recebeu "A", o envio de "B" fica bloqueado.
+Bloqueado — não chega ao fmt.Println.
+
+fmt.Println(<-ch)
+Essa linha nunca é executada, porque o envio anterior bloqueou a goroutine principal.
+
+
+SOLUÇÃO:
+	ch := make(chan string, 1)
+
+	ch <- "hello"
+	fmt.Println(<-ch)  //AQUI ESTAMOS LIBERANDO O CHANNEL LIMPANDO SEU VALOR PARA RECEBER OUTRO VALOR.
+
+	ch <- "hello 2"
+	fmt.Println(<-ch)
+
+	OUTROS EXEMPLOS:
+
+	ch := make(chan string, 2)
+
+	ch <- "hello"
+
+	ch <- "hello 2"
+	fmt.Println(<-ch)
+
+	SAIDA:
+		hello
+		
+	-----------------------------------------------------
+	ch := make(chan string, 2)
+
+	ch <- "hello"
+
+	ch <- "hello 2"
+	fmt.Println(<-ch)
+	fmt.Println(<-ch)
+
+	SAIDA:
+		hello
+		hello 2
+
+	-----------------------------------------------------
+	ch := make(chan string, 1)
+
+	ch <- "hello"
+
+	ch <- "hello 2"
+	fmt.Println(<-ch)
+	
+
+	SAIDA: DEADLOCK! DA ERRO.
+		
