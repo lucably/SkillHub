@@ -390,4 +390,81 @@ SOLUÇÃO:
 	
 
 	SAIDA: DEADLOCK! DA ERRO.
-		
+
+-------------------------------------------------------------------------------------------------------------------------------------------------------
+
+O que é um Handler?
+
+Um handler é uma função responsável por tratar uma requisição HTTP.
+No Go, usando a biblioteca padrão net/http, podemos criar um handler assim:
+
+	func healthHandler(w http.ResponseWriter, r *http.Request) {
+		// Trata a requisição
+	}
+
+
+Entenda os dois parâmetros:
+- w http.ResponseWriter: permite escrever a resposta que será enviada ao cliente.
+- r *http.Request: contém os dados da requisição recebida, como método HTTP, URL, headers e body.
+
+
+Estrutura de pastas:
+	Router: decide qual handler recebe a requisição.
+	Handler: interpreta HTTP e monta a resposta.
+	Service: executa as regras de negócio.
+	Repository: consulta ou persiste dados.
+
+
+Exemplo de transformação de dados:
+
+1) Marshal vs Unmarshal (Focado em Memória: []byte)
+
+Você usa essa dupla quando o dado já está totalmente carregado na memória do computador na forma de um array de bytes ([]byte) ou string
+
+1.1) Marshal ->	Empacota -> Transforma uma Struct do Go em uma**[]byte (JSON)**. -> Salvar configurações na memória ou gerar um texto JSON para log.
+
+1.2) Unmarshal -> Desempacota -> Transforma uma []byte (JSON) de volta em uma Struct do Go. -> Você já leu o arquivo inteiro ou recebeu uma string de texto JSON pura e quer ler os campos.
+
+Exemplo de codigo:
+	// MARSHAL: Struct -> []byte (JSON)
+	dadosBytes, _ := json.Marshal(p1) 
+
+	// UNMARSHAL: []byte (JSON) -> Struct
+	var p2 Pessoa
+	json.Unmarshal(dadosBytes, &p2) 
+
+2. Encode vs Decode (Focado em Fluxos: io.Writer e io.Reader)
+
+Você usa essa dupla quando o dado está vindo ou indo para um fluxo contínuo (Stream). O Go lê ou escreve o dado aos poucos, diretamente da rede ou do disco, sem precisar carregar tudo na memória de uma vez
+
+2.1) Encode -> Codifica e envia -> Pega uma Struct do Go, converte em JSON e escreve direto no fluxo (io.Writer). -> Responder a uma API enviando dados ao cliente (w http.ResponseWriter).
+
+2.2) Decode -> Lê e decodifica -> Lê direto do fluxo (io.Reader), converte o JSON e popula a Struct. -> Ler os dados que o usuário enviou no corpo de uma requisição HTTP (r.Body).
+
+Exemplo de codigo:
+	// DECODE: Lê do fluxo (ex: requisição HTTP) e joga na struct
+	json.NewDecoder(r.Body).Decode(&p1) 
+
+	// ENCODE: Pega a struct e escreve direto no fluxo (ex: resposta HTTP)
+	json.NewEncoder(w).Encode(p1) 
+
+
+TESTES para execução via terminal:
+
+1) get -> curl -i http://localhost:8080/welcome
+
+2) post -> curl -i -X POST http://localhost:8080/welcome
+
+3) post com dados -> curl.exe -i -X POST http://localhost:8080/services -H "Content-Type: application/json" -d "{\"name\":\"Desenvolvimento de sites\",\"price\":1500}"
+
+No qual:
+-i: exibe o status HTTP e os headers da resposta.
+-X POST: define o método HTTP como POST.
+-H "Content-Type: application/json": informa que o corpo da requisição é JSON.
+-d '...': envia os dados no corpo da requisição.
+
+4) post invalido -> curl.exe -i -X POST http://localhost:8080/services -H "Content-Type: application/json" -d "{\"name\":\"Desenvolvimento de sites\",\"price\":}"
+
+5) delete -> curl.exe -i -X DELETE http://localhost:8080/services/123
+
+6) patch -> curl.exe -i -X PATCH http://localhost:8080/services/123 -H "Content-Type: application/json" -d "{\"price\":1800}"
